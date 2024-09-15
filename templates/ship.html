@@ -1,0 +1,18 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}
+{{ data.title }}
+{% endblock %}
+
+{% block content %}
+
+<img style="width: 100%; height: 380px;" src="{{ data.desc_pic }}" alt="ship photo">
+
+<div style="font-family: 'Inknut Antiqua', sans-serif; color: black; margin: 50px 150px;">
+    <h1 style="text-align: center">{{ data.title }}</h1>
+    <p style="text-align: center; justify-content: center; margin-top: 30px; margin-bottom: 30px">{{ data.desc }}</p>
+    <button style="margin-left: 530px; color: black; background: orange;" onclick="history.back()">Назад</button>
+</div>
+
+{% endblock %}

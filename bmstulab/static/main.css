@@ -1,0 +1,46 @@
+body{
+    background-color: rgb(247, 247, 247);
+}
+
+.basket{
+    background-color: white;
+    height: 70px;
+    width: 70px;
+    border-radius: 30%;
+    box-shadow: 0 0 15px orange;
+    transition: 0.3s;
+}
+
+.basket:hover{
+    background-color: rgb(255, 106, 0);
+}
+
+.card {
+  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+  transition: 0.3s;
+  border-radius: 5px; /* 5px rounded corners */
+  width: 347px;
+  height: 477px;
+  margin: 30px;
+  background-color: white;
+  text-decoration: none;
+}
+
+header {
+    background-color: rgb(2, 1, 30);
+    height: 130px;
+    line-height: 50px;
+    padding-top: 15px;
+}
+
+.title {
+    text-decoration: none;
+    margin: 5px;
+    line-height: 50px;
+}
+
+button {
+  border-radius: 5px;
+  color: #ADB6C4;
+  font: sans-serif;
+}
