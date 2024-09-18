@@ -1,5 +1,5 @@
 body{
-    background-color: rgb(247, 247, 247);
+    background-color: #F5F4F4;
 }
 
 .basket{
@@ -27,7 +27,7 @@ body{
 }
 
 header {
-    background-color: rgb(2, 1, 30);
+    background-color: #000033;
     height: 130px;
     line-height: 50px;
     padding-top: 15px;
