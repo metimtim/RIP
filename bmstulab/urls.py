@@ -19,8 +19,7 @@ from django.urls import path
 from ships import views
 
 urlpatterns = [
-    path('', views.home, name='home_url'),
+    path('', views.ships, name='ships_url'),
     path('ship/<int:id>/', views.ship, name='ship_url'),
-    path('search/', views.search, name='search_url'),
-    path('basket/', views.basket, name='basket_url'),
+    path('ship_request/<int:id>/', views.ship_request, name='ship_request_url'),
 ]

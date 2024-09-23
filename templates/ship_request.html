@@ -1,0 +1,52 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}
+Заявки
+{% endblock %}
+
+{% block content %}
+
+<h1 style="font-family: 'Inknut Antiqua', sans-serif; font-weight: bold; font-size: 50px; margin-left: 100px; color: black; margin-top: 70px; margin-bottom: 50px;">Моя заявка</h1>
+<div style="font-family: 'Inknut Antiqua', sans-serif; display: block; margin-left: 100px;">
+    <h4>Выберите название порта</h4>
+    <div style="border: solid; width: 400px; border-radius: 5px; height: 30px; background: #FFFFFF; margin-bottom: 50px;">
+        <p style="color: black;">{{ data.port_name }}</p>
+    </div>
+
+    <h4>Выберите дату стоянки</h4>
+{#    <input type="date" value="2024-01-01" min="2024-01-01" max="2025-01-01" />#}
+    <div style="border: solid; width: 400px; border-radius: 5px; height: 30px; background: #FFFFFF;">
+        <p style="color: black;">{{ data.date }}</p>
+    </div>
+    <div style="margin-top: 20px;">
+        <ul style="display: grid; grid-template-columns: 440px 440px; padding: 0; margin-left: -20px; list-style-type: none;">
+            {% for request in data.requests %}
+                {% for ship in data.ships %}
+                    {% if ship.id in request.ship_ids %}
+                        <li class="card">
+                            <img style="object-fit: cover; width: 100%; height: 100%; margin: 0; border-radius: 5px; border: 0.1px white solid;" src="{{ ship.pic }}" alt="ship img">
+                            <a style="font-family: 'Inknut Antiqua', sans-serif; text-decoration: none; margin-top: 2px; text-align: center; color: black; font-weight: medium; font-size: 25px" href="{% url 'ship_url' ship.id %}">{{ ship.title }}</a>
+                            <a style="font-family: 'Inknut Antiqua', sans-serif; text-decoration: none; margin-bottom: 2px; text-align: center; color: black; font-weight: medium; font-size: 25px" href="{% url 'ship_url' ship.id %}">Класс: {{ ship.class }}</a>
+                        </li>
+{#                            <input style="border-radius: 5px; width: 440px; height: 30px; margin-top: 50px; float: right;" placeholder={{ data.captain_1 }} name="text" type="text">#}
+                            <div style="margin-top: 50px;">
+                            <h4>Выберите капитана</h4>
+                            <div style="border: solid; width: 400px; border-radius: 5px; height: 30px; background: #FFFFFF; margin-top: 10px;">
+                                
+                                <p style="color: black;">{{ data.captain_1 }}</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                {% empty %}
+                    <li style="font-family: 'Inknut Antiqua', sans-serif; color: black; font-size: 25px;">По Вашему запросу результатов не найдено</li>
+                {% endfor %}
+            {% empty %}
+                <li style="font-family: 'Inknut Antiqua', sans-serif; color: black; font-size: 25px;">По Вашему запросу результатов не найдено</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+
+{% endblock %}

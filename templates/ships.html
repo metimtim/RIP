@@ -1,0 +1,55 @@
+{% extends 'layout.html' %}
+{% load static %}
+
+{% block title %}
+Услуги
+{% endblock %}
+
+{% block content %}
+
+<form style="text-align: center; margin-top: 40px" action="{% url 'ships_url' %}" method="get" enctype="multipart/form-data">
+{#    {% csrf_token %}#}
+    <input style="font-family: 'Roboto', sans-serif; width: 800px; height: 40px; border-radius: 10px; " placeholder="Поиск..." name="text" type="text">
+    <input style="font-family: 'Roboto', sans-serif; height: 40px; width: 70px; border-radius: 5px; background: orange; font-color: black" type="submit" value="Поиск" >
+</form>
+<div style="margin-top: 50px; text-align: center; margin-left: 20px; margin-bottom: 50px">
+    <h2 style="display: inline; font-family: 'Inknut Antiqua', sans-serif; font-size: 50px; font-weight: 500; color: #000033;">Флот </h2>
+    <h2 style="display: inline; font-family: 'Inknut Antiqua', sans-serif; font-size: 50px; color: #000033;">TimCruise</h2>
+</div>
+<div>
+    <ul style="display: grid; grid-template-columns: 440px 440px 440px; padding: 0; margin-left: 80px">
+        {% for ship in data.ships %}
+            <li class="card">
+                <img style="object-fit: cover; width: 100%; height: 100%; margin: 0; border-radius: 5px; border: 0.1px white solid;" src="{{ ship.pic }}" alt="ship img">
+                <a style="font-family: 'Inknut Antiqua', sans-serif; text-decoration: none; margin-top: 2px; text-align: center; color: black; font-weight: medium; font-size: 25px" href="{% url 'ship_url' ship.id %}">{{ ship.title }}</a>
+                <a style="font-family: 'Inknut Antiqua', sans-serif; text-decoration: none; margin-bottom: 2px; text-align: center; color: black; font-weight: medium; font-size: 25px" href="{% url 'ship_url' ship.id %}">Класс: {{ ship.class }}</a>
+            </li>
+        {% empty %}
+            <li style="font-family: 'Roboto', sans-serif; color: #000033">По Вашему поиску результатов не найдено</li>
+        {% endfor %}
+    </ul>
+</div>
+
+<div style="right: 65px; position: fixed; bottom: 10px;">
+    <a href="{% url 'ship_request_url' data.request_id %}" style="text-decoration: none;">
+        <img class="basket"
+             src="http://127.0.0.1:9000/rip/korzina2.png"
+             alt="store icon">
+        <div style="display: inline-block;
+                  position: relative;
+                  text-align: center;
+                  width: 25px;
+                  height: 25px;
+                  border-radius: 50%;
+                  background: red;
+                  border: 0.5px solid white;
+                  left: -52px; top: 15px"
+            >
+        <p style="font-family: 'Roboto', sans-serif; color: white; font-weight: bold; font-size: 17px">{{ data.basket_count }}</p>
+        </div>
+    </a>
+</div>
+
+
+{% endblock %}
+
