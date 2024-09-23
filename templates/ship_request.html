@@ -9,44 +9,51 @@
 
 <h1 style="font-family: 'Inknut Antiqua', sans-serif; font-weight: bold; font-size: 50px; margin-left: 100px; color: black; margin-top: 70px; margin-bottom: 50px;">Моя заявка</h1>
 <div style="font-family: 'Inknut Antiqua', sans-serif; display: block; margin-left: 100px;">
-    <h4>Выберите название порта</h4>
-    <div style="border: solid; width: 400px; border-radius: 5px; height: 30px; background: #FFFFFF; margin-bottom: 50px;">
+    <h4 style="margin-left: 20px;">Выберите название порта</h4>
+    <div style="border: solid; width: 400px; border-radius: 5px; height: 30px; background: #FFFFFF; margin-bottom: 50px; margin-left: 20px;">
         <p style="color: black;">{{ data.port_name }}</p>
     </div>
 
-    <h4>Выберите дату стоянки</h4>
+    <h4 style="margin-left: 20px;">Выберите дату стоянки</h4>
 {#    <input type="date" value="2024-01-01" min="2024-01-01" max="2025-01-01" />#}
-    <div style="border: solid; width: 400px; border-radius: 5px; height: 30px; background: #FFFFFF;">
+    <div style="border: solid; width: 400px; border-radius: 5px; height: 30px; background: #FFFFFF; margin-left: 20px;">
         <p style="color: black;">{{ data.date }}</p>
     </div>
-    <div style="margin-top: 20px;">
-        <ul style="display: grid; grid-template-columns: 440px 440px; padding: 0; margin-left: -20px; list-style-type: none;">
-            {% for request in data.requests %}
+<div style="display: flex;">
+    <ul style="padding: 0; list-style-type: none;">
+        {% for request in data.requests %}
                 {% for ship in data.ships %}
                     {% if ship.id in request.ship_ids %}
-                        <li class="card">
-                            <img style="object-fit: cover; width: 100%; height: 100%; margin: 0; border-radius: 5px; border: 0.1px white solid;" src="{{ ship.pic }}" alt="ship img">
-                            <a style="font-family: 'Inknut Antiqua', sans-serif; text-decoration: none; margin-top: 2px; text-align: center; color: black; font-weight: medium; font-size: 25px" href="{% url 'ship_url' ship.id %}">{{ ship.title }}</a>
-                            <a style="font-family: 'Inknut Antiqua', sans-serif; text-decoration: none; margin-bottom: 2px; text-align: center; color: black; font-weight: medium; font-size: 25px" href="{% url 'ship_url' ship.id %}">Класс: {{ ship.class }}</a>
-                        </li>
-{#                            <input style="border-radius: 5px; width: 440px; height: 30px; margin-top: 50px; float: right;" placeholder={{ data.captain_1 }} name="text" type="text">#}
-                            <div style="margin-top: 50px;">
+                       <div style="display: flex;">
+                    <li style="box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2); transition: 0.3s; border-radius: 5px; border-width: 3px; width: 700px; height: 170px; margin: 20px; background-color: white; text-decoration: none;">
+                        <img style="float: left; height: 170px; width: 250px;" src="{{ ship.pic }}" alt="ship img">
+                        <a style="font-family: 'Roboto', sans-serif; text-decoration: none; margin-top: 2px; margin-left: 20px; text-align: center; color: black; font-weight: medium; font-size: 25px" href="{% url 'ship_url' ship.id %}">{{ ship.title }}</a>
+                        <p style="padding-left: 20px; -webkit-line-clamp: 3; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden;">{{ ship.desc }}</p>
+                        <form action="{% url 'ship_url' ship.id %}">
+                            <input style="margin-left: 20px;" type="submit" value="Подробнее" />
+                        </form>
+                    </li>
+                        <div style="margin-top: 50px;">
                             <h4>Выберите капитана</h4>
                             <div style="border: solid; width: 400px; border-radius: 5px; height: 30px; background: #FFFFFF; margin-top: 10px;">
                                 
                                 <p style="color: black;">{{ data.captain_1 }}</p>
                             </div>
                         </div>
-                    {% endif %}
-                {% empty %}
-                    <li style="font-family: 'Inknut Antiqua', sans-serif; color: black; font-size: 25px;">По Вашему запросу результатов не найдено</li>
-                {% endfor %}
+                        </div> 
+
+                {% endif %}
             {% empty %}
-                <li style="font-family: 'Inknut Antiqua', sans-serif; color: black; font-size: 25px;">По Вашему запросу результатов не найдено</li>
+                <li style="font-family: 'Roboto', sans-serif; color: white">По Вашему поиску результатов не найдено</li>
             {% endfor %}
-        </ul>
-    </div>
+        {% empty %}
+            <li style="font-family: 'Roboto', sans-serif; color: white">По Вашему поиску результатов не найдено</li>
+        {% endfor %}
+    </ul>
+</div>
 </div>
 
 
+    
 {% endblock %}
+
