@@ -21,15 +21,14 @@
     </div>
 <div style="display: flex;">
     <ul style="padding: 0; list-style-type: none;">
-        {% for request in data.requests %}
-                {% for ship in data.ships %}
-                    {% if ship.id in request.ship_ids %}
+        {% if data.current_ships %}
+            {% for ship in data.current_ships %}
                        <div style="display: flex;">
                     <li style="box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2); transition: 0.3s; border-radius: 5px; border-width: 3px; width: 700px; height: 170px; margin: 20px; background-color: white; text-decoration: none;">
-                        <img style="float: left; height: 170px; width: 250px;" src="{{ ship.pic }}" alt="ship img">
-                        <a style="font-family: 'Roboto', sans-serif; text-decoration: none; margin-top: 2px; margin-left: 20px; text-align: center; color: black; font-weight: medium; font-size: 25px" href="{% url 'ship_url' ship.id %}">{{ ship.title }}</a>
-                        <p style="padding-left: 20px; -webkit-line-clamp: 3; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden;">{{ ship.desc }}</p>
-                        <form action="{% url 'ship_url' ship.id %}">
+                        <img style="float: left; height: 170px; width: 250px;" src="{{ ship.img_url }}" alt="ship img">
+                        <a style="font-family: 'Roboto', sans-serif; text-decoration: none; margin-top: 2px; margin-left: 20px; text-align: center; color: black; font-weight: medium; font-size: 25px" href="{% url 'ship_url' ship.id_ship %}">{{ ship.ship_name }}</a>
+                        <p style="padding-left: 20px; -webkit-line-clamp: 3; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden;">{{ ship.description }}</p>
+                        <form action="{% url 'ship_url' ship.id_ship %}">
                             <input style="margin-left: 20px;" type="submit" value="Подробнее" />
                         </form>
                     </li>
@@ -42,18 +41,23 @@
                         </div>
                         </div> 
 
-                {% endif %}
+                
             {% empty %}
                 <li style="font-family: 'Roboto', sans-serif; color: white">По Вашему поиску результатов не найдено</li>
             {% endfor %}
-        {% empty %}
-            <li style="font-family: 'Roboto', sans-serif; color: white">По Вашему поиску результатов не найдено</li>
-        {% endfor %}
+    {% endif %}
+
     </ul>
 </div>
 </div>
 
-
+<div style="display: flex; justify-content: center;">
+    <form action="{% url 'del_parking' %}" method="POST">
+        {% csrf_token %}
+        <input type="hidden" value="{{ data.req_id }}" name="id_parking">
+        <button class="del-btn" type="submit">Удалить</button>
+    </form>
+</div>
     
 {% endblock %}
 

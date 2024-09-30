@@ -2,16 +2,16 @@
 {% load static %}
 
 {% block title %}
-{{ data.title }}
+{{ current_ship.ship_name }}
 {% endblock %}
 
 {% block content %}
 
-<img style="width: 100%; height: 380px;" src="{{ data.pic }}" alt="ship photo">
+<img style="width: 100%; height: 380px;" src="{{ current_ship.desc_img_url }}" alt="ship photo">
 
 <div style="font-family: 'Inknut Antiqua', sans-serif; color: black; margin: 50px 150px;">
-    <h1 style="text-align: center; color: #000033">{{ data.title }}</h1>
-    <p style="text-align: center; justify-content: center; margin-top: 30px; margin-bottom: 30px">{{ data.desc }}</p>
+    <h1 style="text-align: center; color: #000033">{{ current_ship.ship_name }}</h1>
+    <p style="text-align: center; justify-content: center; margin-top: 30px; margin-bottom: 30px">{{ current_ship.description }}</p>
 </div>
 
 {% endblock %}

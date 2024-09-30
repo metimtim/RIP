@@ -1,70 +1,80 @@
 from django.shortcuts import render
-
-SHIPS = [
-    {'title': 'LIRICA', 'class': 'Круизный лайнер', 'pic': 'http://127.0.0.1:9000/rip/LI.jpg',
-     'desc_pic': 'http://127.0.0.1:9000/rip/lirica.jpg', 'id': 1,
-     'desc': 'Круизный лайнер Lirica — современное судно на 2 000 пассажиров с 700 каютами, включая люксы и номера с балконами. На борту: рестораны с интернациональной и средиземноморской кухней, бассейны, фитнес-центр, спа и вечерние шоу. Лайнер длиной 251 метр развивает скорость до 21 узла и предлагает круизы по Средиземному морю и другим направлениям.'},
-    {'title': 'ORCHESTRA', 'class': 'Баржа', 'pic': 'http://127.0.0.1:9000/rip/OR.jpeg',
-     'desc_pic': 'http://127.0.0.1:9000/rip/OR.jpeg', 'id': 2,
-     'desc': 'Баржа Orchestra — современное судно для грузоперевозок, рассчитанное на эффективное и безопасное перемещение товаров. С длиной 135 метров, она способна перевозить крупногабаритные грузы и контейнеры. На борту предусмотрены все необходимые условия для быстрой погрузки и разгрузки, а современные навигационные системы обеспечивают высокую точность маршрута. Orchestra идеально подходит для транспортировки по рекам и каналам, предлагая надежность и эффективность на каждом этапе пути.'},
-    {'title': 'OPERA', 'class': 'Круизный лайнер', 'pic': 'http://127.0.0.1:9000/rip/OP.jpg',
-     'desc_pic': 'http://127.0.0.1:9000/rip/opera.jpg', 'id': 3,
-     'desc': 'Круизный лайнер Opera — это элегантное судно, рассчитанное на 2 500 пассажиров и предлагающее более 850 кают, включая люксы и номера с балконами. На борту доступны рестораны с интернациональной и местной кухней, спа-салон, бассейны и спортивные зоны для активного отдыха. Гостям предлагается насыщенная развлекательная программа, включая живые выступления и вечерние шоу. Лайнер длиной 275 метров развивает скорость до 22 узлов и совершает круизы по популярным туристическим направлениям, таким как Средиземное море и Карибы'},
-    {'title': 'SEASHORE', 'class': 'Баржа', 'pic': 'http://127.0.0.1:9000/rip/SE.jpg',
-     'desc_pic': 'http://127.0.0.1:9000/rip/SE.jpg', 'id': 4,
-     'desc': 'Баржа Seashore — современное грузовое судно длиной 140 метров, предназначенное для перевозки больших объемов товаров по рекам и морям. Оснащенная мощными двигателями и передовыми навигационными системами, она обеспечивает безопасную и быструю транспортировку грузов. Seashore предлагает отличные условия для погрузки и разгрузки, делая её идеальным выбором для логистических операций. Баржа отличается надежностью и эффективностью, способной работать в самых разных климатических и морских условиях.'},
-    {'title': 'VIRTUOSA', 'class': 'Катер', 'pic': 'http://127.0.0.1:9000/rip/VI.jpeg',
-     'desc_pic': 'http://127.0.0.1:9000/rip/VI.jpeg', 'id': 5,
-     'desc': 'Катер Virtuosa — элегантное 8-местное судно, оснащённое мощным двигателем и современным оборудованием для комфортных морских прогулок. С длиной 7.5 метров и шириной 2.5 метра, он обеспечивает отличную стабильность и управляемость. Интерьер включает уютные сиденья, просторную палубу и функциональную кухню. Максимальная скорость составляет 40 узлов, а запас топлива позволяет путешествовать на дальние расстояния. Идеален для семейных поездок и романтических выездов.'},
-]
-
-SHIP_REQUESTS = [
-    {
-        'id': 1, 'port_name': 'Порт Крым', 'date': '12.05.2024', 'ship_ids': [1, 3], 'captains': ['Табахов Е.В.', 'Насруллаев А.К.']
-    }
-]
-
+from django.shortcuts import redirect
+from django.db import connection
+from .models import Ship, Parking, ParkingShip
+from django.contrib.auth.models import User
 
 def ships(request):
-    ftitle = request.GET.get('text', "")
-    request_id = SHIP_REQUESTS[0]['id']
-    for req in SHIP_REQUESTS:
-        basket_count = len(req['ship_ids'])
-    sh_filtered = SHIPS
-    if ftitle != "":
-        sh_filtered = list(filter(lambda x: ftitle.lower() in x['class'].lower(), SHIPS))
-    return render(request, 'ships.html', {'data': {
-        'ships': sh_filtered,
-        'requests': SHIP_REQUESTS,
-        'basket_count': basket_count,
-        'request_id': request_id,
-    }})
+    if not Parking.objects.filter(status='draft').exists():
+        ship_count = 0
+        current_request = 0
+    else:
+        parkings = Parking.objects.filter(status='draft')
+        current_request = parkings.first()
+        ship_count = current_request.parking_ship.count()
 
+    class_name = request.GET.get('class_name', '')
+    if class_name:
+        ships = Ship.objects.filter(class_name__icontains=class_name)
+    else:
+        ships = Ship.objects.all()
+
+    return render(request, 'ships.html', {'data' : {
+        'ships': ships,
+        'count_ship': ship_count,
+        'id_parking': current_request.id_parking if current_request else 0
+    }})
 
 def ship(request, id):
-    sh = list(filter(lambda x: x['id'] == id, SHIPS))[0]
-    title = sh['title']
-    desc = sh['desc']
-    desc_pic = sh['desc_pic']
-    return render(request, 'ship.html', {'data': {
-        'title': title,
-        'desc': desc,
-        'pic': desc_pic,
-        'id': id
+    current_ship = Ship.objects.get(id_ship=id)
+    return render(request, 'ship.html', {'current_ship': current_ship})
+
+def parking(request, id):
+    if id == 0:
+        return render(request, 'ship_request.html', {'current_request': None})
+
+    if Parking.objects.filter(id_parking=id).exclude(status='draft').exists():
+        return render(request, 'ship_request.html', {'current_request': None})
+
+    if not Parking.objects.filter(id_parking=id).exists():
+        return render(request, 'ship_request.html', {'current_request': None})
+
+    req_id = id
+    current_request = Parking.objects.get(id_parking=id)
+    ship_ids = ParkingShip.objects.filter(parking=current_request).values_list('ship', flat=True)
+    current_ships = Ship.objects.filter(id_ship__in=ship_ids)
+
+    return render(request, 'ship_request.html', {'data' : {
+        'current_ships': current_ships,
+        'current_request': current_request,
+        'req_id':req_id
     }})
 
+def add_ship(request):
+    if request.method == 'POST':
+        if not Parking.objects.filter(status='draft').exists():
+            parking = Parking()
+            parking.user_id = request.user.id
+            parking.save()
+        else:
+            parking = Parking.objects.get(status='draft')
 
-def ship_request(request, id):
-    captain_1 = SHIP_REQUESTS[0]['captains'][0]
-    captain_2 = SHIP_REQUESTS[0]['captains'][1]
-    port_name = SHIP_REQUESTS[0]['port_name']
-    date = SHIP_REQUESTS[0]['date']
-    return render(request, 'ship_request.html', {'data': {
-        'ships': SHIPS,
-        'requests': SHIP_REQUESTS,
-        'captain_1': captain_1,
-        'captain_2': captain_2,
-        'port_name': port_name,
-        'date': date
+        ship_id = request.POST.get('ship_id')
+        new_ship = Ship.objects.get(id_ship=ship_id)
+        if ParkingShip.objects.filter(parking=parking, ship=new_ship).exists():
+            return redirect('/')
+        parking_ship = ParkingShip(parking=parking, ship=new_ship)
+        parking_ship.save()
+        return redirect('/')
+    else:
+        return redirect('/')
 
-    }})
+
+def del_parking(request):
+    if request.method == 'POST':
+        id_parking = request.POST.get('id_parking')
+        with connection.cursor() as cursor:
+            cursor.execute("UPDATE parking SET status = %s WHERE id_parking = %s", ['deleted', id_parking])
+        return redirect('/')
+    else:
+        return redirect('/')

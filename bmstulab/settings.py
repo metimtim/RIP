@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'ships.apps.ShipsConfig',
+    'ships_rip'
 ]
 
 MIDDLEWARE = [
@@ -77,8 +78,12 @@ WSGI_APPLICATION = 'bmstulab.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'ships', # Имя вашей БД. Если вы создали черезе psql или IDE свою базу и хотите использовать его - пропишите его имя здесь
+        'USER': 'admin',
+        'PASSWORD': 'admincool',
+        'HOST': 'localhost',
+        'PORT': 5432, # Стандартный порт PostgreSQL
     }
 }
 
@@ -107,7 +112,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Moscow'
 
 USE_I18N = True
 

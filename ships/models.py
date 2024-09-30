@@ -1,3 +1,44 @@
 from django.db import models
+from datetime import datetime
+from django.contrib.auth.models import User
+class Ship(models.Model):
+    id_ship = models.AutoField(primary_key=True, null=False, unique=True)
+    ship_name = models.CharField(max_length=60, null=False)
+    class_name = models.CharField(max_length=60, null=False)
+    description = models.TextField(max_length=600, null=False)
+    status = models.CharField(max_length=30, null=False)
+    img_url = models.CharField(max_length=255, null=False)
+    desc_img_url = models.CharField(max_length=255, null=False)
 
-# Create your models here.
+
+    class Meta:
+        managed = True
+        db_table = 'ship'
+
+class Parking(models.Model):
+    id_parking = models.AutoField(primary_key=True, null=False, unique=True)
+    status = models.CharField(max_length=30, null=False, default='draft')
+    created_at = models.DateTimeField(null=False, default=datetime.now())
+    formed_at = models.DateTimeField(null=True)
+    ended_at = models.DateTimeField(null=True)
+    date_of_parking = models.DateField(null=True)
+    port = models.CharField(max_length=30, null=False)
+    user = models.ForeignKey(User,on_delete=models.CASCADE)
+    moderator = models.CharField(max_length=50,null=True)
+
+
+    class Meta:
+        managed = True
+        db_table = 'parking'
+
+class ParkingShip(models.Model):
+    parking = models.ForeignKey(Parking, on_delete=models.CASCADE, related_name='parking_ship')
+    ship = models.ForeignKey(Ship, on_delete=models.CASCADE)
+    captain = models.CharField(max_length=50,null=True)
+
+    class Meta:
+        managed = True
+        db_table = 'parking_ship'
+        constraints = [
+            models.UniqueConstraint(fields=['parking', 'ship'], name='unique_parking_ship')
+        ]
