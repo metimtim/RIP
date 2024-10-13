@@ -21,7 +21,7 @@ body{
   border-radius: 5px; /* 5px rounded corners */
   width: 347px;
   height: 477px;
-  margin: 30px;
+  margin: 14px;
   background-color: white;
   text-decoration: none;
 }
@@ -31,6 +31,7 @@ header {
     height: 130px;
     line-height: 50px;
     padding-top: 15px;
+    width: 100%;
 }
 
 .title {
@@ -43,4 +44,36 @@ button {
   border-radius: 5px;
   color: #ADB6C4;
   font: sans-serif;
+}
+.add-btn{
+    width: 100px;
+    background: white;
+    color: #060F1E;
+    border-width: 0.5px;
+    margin-left: 120px;
+    margin-top: 5px;
+    transition: 0.5s;
+}
+
+.add-btn:hover{
+    transition: 0.5s;
+    background: #000033;
+    color: white;
+}
+
+.del-btn{
+    width: 100px;
+    background: white;
+    color: darkred;
+    border-width: 2px;
+    margin-left: 25px;
+    margin-top: 5px;
+    transition: 0.5s;
+    border-color: darkred;
+}
+
+.del-btn:hover{
+    transition: 0.5s;
+    background: darkred;
+    color: white;
 }

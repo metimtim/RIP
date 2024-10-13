@@ -15,9 +15,9 @@ def ships(request):
 
     class_name = request.GET.get('class_name', '')
     if class_name:
-        ships = Ship.objects.filter(class_name__icontains=class_name)
+        ships = Ship.objects.filter(class_name__icontains=class_name, status='active')
     else:
-        ships = Ship.objects.all()
+        ships = Ship.objects.filter(status='active')
 
     return render(request, 'ships.html', {'data' : {
         'ships': ships,
@@ -47,7 +47,8 @@ def parking(request, id):
     return render(request, 'ship_request.html', {'data' : {
         'current_ships': current_ships,
         'current_request': current_request,
-        'req_id':req_id
+        'req_id':req_id,
+        'date_of_parking': current_request.date_of_parking
     }})
 
 def add_ship(request):

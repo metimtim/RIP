@@ -1,6 +1,8 @@
 from django.db import models
 from datetime import datetime
 from django.contrib.auth.models import User
+from datetime import timedelta
+from django.utils import timezone
 class Ship(models.Model):
     id_ship = models.AutoField(primary_key=True, null=False, unique=True)
     ship_name = models.CharField(max_length=60, null=False)
@@ -21,9 +23,9 @@ class Parking(models.Model):
     created_at = models.DateTimeField(null=False, default=datetime.now())
     formed_at = models.DateTimeField(null=True)
     ended_at = models.DateTimeField(null=True)
-    date_of_parking = models.DateField(null=True)
-    port = models.CharField(max_length=30, null=False)
-    user = models.ForeignKey(User,on_delete=models.CASCADE)
+    date_of_parking = models.DateField(null=True, default=(timezone.now().date() + timedelta(days=1)))
+    port = models.CharField(max_length=30, null=True)
+    user = models.ForeignKey(User,on_delete=models.CASCADE, null=True)
     moderator = models.CharField(max_length=50,null=True)
 
 
