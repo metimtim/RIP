@@ -10,7 +10,6 @@ class Ship(models.Model):
     description = models.TextField(max_length=600, null=False)
     status = models.CharField(max_length=30, null=False)
     img_url = models.CharField(max_length=255, null=False)
-    desc_img_url = models.CharField(max_length=255, null=False)
 
 
     class Meta:
