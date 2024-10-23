@@ -29,6 +29,8 @@ class Parking(models.Model):
     port = models.CharField(max_length=30, null=True)
     user = models.ForeignKey(User,on_delete=models.CASCADE)
     moderator = models.ForeignKey(User, max_length=50,null=True, on_delete=models.SET_NULL, related_name='moderator_id')
+    user_name =models.CharField(null=True)
+    spendings_of_crew = models.IntegerField(null=True)
 
 
     class Meta:
@@ -37,7 +39,7 @@ class Parking(models.Model):
 
 class ParkingShip(models.Model):
     parking = models.ForeignKey(Parking, on_delete=models.CASCADE, related_name='parking_ship')
-    ship = models.ForeignKey(Ship, on_delete=models.CASCADE)
+    ship = models.ForeignKey(Ship, on_delete=models.CASCADE,related_name='ship_ship')
     captain = models.CharField(max_length=50,null=True)
 
     class Meta:

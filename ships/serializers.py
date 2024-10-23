@@ -21,7 +21,7 @@ class AddImageSerializer(serializers.Serializer):
 class ParkingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Parking
-        fields = ["id_parking", "date_of_parking", "status", "created_at", "formed_at", "ended_at", "user", "moderator", "port"]
+        fields = ["id_parking", "date_of_parking", "status", "created_at", "formed_at", "ended_at", "user_name", "moderator", "port", "spendings_of_crew"]
 
 
 class PutParkingSerializer(serializers.ModelSerializer):
@@ -29,13 +29,13 @@ class PutParkingSerializer(serializers.ModelSerializer):
     port = serializers.CharField()
     class Meta:
         model = Parking
-        fields = ["date_of_parking", "port", "status", "created_at", "formed_at", "ended_at", "user", "moderator"]
+        fields = ["date_of_parking", "port", "status", "created_at", "formed_at", "ended_at", "user_name", "moderator", "spendings_of_crew"]
 
 
 class ShipDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ship
-        fields = ["id_ship", "ship_name", "class_name", "status", "description", "img_url"]
+        fields = ["id_ship", "ship_name", "class_name", "status", "description"]
 
 
 class ShipListSerializer(serializers.ModelSerializer):
@@ -112,3 +112,9 @@ class CheckUsernameSerializer(serializers.Serializer):
 
 class AcceptParkingSerializer(serializers.Serializer):
     accept = serializers.BooleanField()
+
+class ShipListInParkingSerializer(serializers.ModelSerializer):
+    captain = serializers.CharField(required=False)
+    class Meta:
+        model = Ship
+        fields = ["id_ship", "ship_name", "class_name", "status", "captain"]

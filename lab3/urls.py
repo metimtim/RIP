@@ -30,8 +30,8 @@ urlpatterns = [
     path(r'delete-parking/<int:id_parking>/', views.ModerateParking.as_view(), name='delete-parking-by-id'), #удалить заявку (DELETE)
 
     # m-m
-    path(r'delete-from-parking/<int:id_parking>/', views.EditShipParking.as_view(), name='delete-from-parking-by-id'), #удалить из заявки (DELETE)
-    path(r'add-captain/<int:id_parking>/', views.EditShipParking.as_view(), name='add-captain-request-by-id'),
+    path(r'delete-from-parking/<int:id_parking>/ship/<int:id_ship>/', views.EditShipParking.as_view(), name='delete-from-parking-by-id'), #удалить из заявки (DELETE)
+    path(r'add-captain/<int:id_parking>/ship/<int:id_ship>/', views.EditShipParking.as_view(), name='add-captain-request-by-id'),
 
     # Users
     path('register/', views.UserRegistrationView.as_view(), name='register'),

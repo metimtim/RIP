@@ -1,34 +1,40 @@
-from rest_framework.response import Response
+from datetime import datetime
+
+from django.contrib.auth import logout
+from django.db.models import F
 from django.shortcuts import get_object_or_404
 from rest_framework import status
-from .serializers import *
-from .models import Parking, Ship, ParkingShip
-from rest_framework.views import APIView
-from rest_framework.decorators import api_view
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.authtoken.models import Token
-from django.contrib.auth import logout
-from datetime import datetime
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from .models import Parking, Ship, ParkingShip
+from .serializers import *
+from random import randint
 
 
 class ShipList(APIView):
     model_class = Ship
     serializer_class = ShipListSerializer
 
-
     # получить список кораблей
     def get(self, request):
         if 'class_name' in request.GET:
-            ships = self.model_class.objects.filter(class_name__icontains=request.GET['class_name'], status='active')
+            ships = self.model_class.objects.filter(class_name__icontains=request.GET['class_name'])
         else:
-            ships = self.model_class.objects.filter(status='active')
+            ships = self.model_class.objects.all()
 
         serializer = self.serializer_class(ships, many=True)
         resp = serializer.data
-        draft_request = Parking.objects.filter(user=request.user.id, status='draft').first()
+        draft_request = Parking.objects.filter(user=request.user, status='draft').first()
+
         if draft_request:
-            request_serializer = ParkingSerializer(draft_request)  # Use RequestSerializer here
-            resp.append({'request': request_serializer.data})
+            draft_request_id = Parking.objects.filter(user=request.user, status='draft').first().id_parking
+            count_ships_in_draft = ParkingShip.objects.filter(parking_id=draft_request).values_list('ship_id',
+                                                                                                    flat=True).count()
+            resp.append({'parking_id': draft_request_id})
+            resp.append({'count': count_ships_in_draft})
 
         return Response(resp, status=status.HTTP_200_OK)
 
@@ -86,8 +92,8 @@ class AddShipView(APIView):
         if not Parking.objects.filter(user=request.user, status='draft').exists():
             new_parking = Parking()
             new_parking.user = request.user
+            new_parking.user_name = request.user.username
             new_parking.save()
-
 
         id_parking = Parking.objects.filter(user=request.user, status='draft').first().id_parking
         serializer = ParkingShipSerializer(data=request.data)
@@ -163,13 +169,15 @@ class UserLogoutView(APIView):
 
 class ListParking(APIView):
     def get(self, request):
-        if 'formed_at' in request.GET and 'status' in request.GET:
-            parkings = Parking.objects.filter(formed_at__gte=request.GET['formed_at'], status=request.GET['status']).exclude(
+        if 'date' in request.data and 'status' in request.data:
+            parkings = Parking.objects.filter(formed_at__gte=request.data['date'],
+                                              status=request.data['status']).exclude(
                 formed_at=None)
         else:
             parkings = Parking.objects.all()
 
         parkings_serializer = ParkingSerializer(parkings, many=True)
+
         return Response(parkings_serializer.data, status=status.HTTP_200_OK)
 
 
@@ -177,18 +185,23 @@ class GetParking(APIView):
     def get(self, request, id_parking):
         parking = get_object_or_404(Parking, id_parking=id_parking)
         serializer = ParkingSerializer(parking)
-
-        parking_ships = ParkingShip.objects.filter(parking_id=parking.id_parking)
-        ships_ids = []
-        for parking_ship in parking_ships:
-            ships_ids.append(parking_ship.ship_id)
-
-        ships_in_parking = []
-        for id_ship in ships_ids:
-            ships_in_parking.append(get_object_or_404(Ship, id_ship=id_ship))
-
-        ships_serializer = ShipListSerializer(ships_in_parking, many=True)
         response = serializer.data
+
+        # parking_ships = ParkingShip.objects.filter(parking_id=parking.id_parking)
+        # ships_ids = []
+        # for parking_ship in parking_ships:
+        #     ships_ids.append(parking_ship.ship_id)
+        #
+        # ships_in_parking = []
+        # for id_ship in ships_ids:
+        #     ships_in_parking.append(get_object_or_404(Ship, id_ship=id_ship))
+        current_ships = Ship.objects.filter(
+            ship_ship__parking_id=id_parking  # Проверка на соответствие стоянки
+        ).annotate(
+            captain=F('ship_ship__captain')  # Добавляем информацию о капитане из модели ParkingShip
+        ).order_by('id_ship')
+        ships_serializer = ShipListInParkingSerializer(current_ships, many=True)
+
         response['ships'] = ships_serializer.data
 
         return Response(response, status=status.HTTP_200_OK)
@@ -239,6 +252,10 @@ class ModerateParking(APIView):
             if serializer.validated_data['accept'] == True and parking.status:
                 parking.status = 'completed'
                 parking.moderator = request.user
+                count_ships_in_draft = ParkingShip.objects.filter(parking_id=id_parking).values_list('ship_id',
+                                                                                                     flat=True).count()
+                parking.spendings_of_crew = count_ships_in_draft * randint(10000, 20000)
+                parking.ended_at = datetime.now()
 
 
             else:
@@ -264,21 +281,17 @@ class ModerateParking(APIView):
 
 
 class EditShipParking(APIView):
-    def delete(self, request, id_parking):
-        if 'id_ship' in request.data:
-            record_m_to_m = get_object_or_404(ParkingShip, parking_id=id_parking, ship_id=request.data['id_ship'])
-            record_m_to_m.delete()
-            return Response(status=status.HTTP_200_OK)
-        else:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+    def delete(self, request, id_parking, id_ship):
+        record_m_to_m = get_object_or_404(ParkingShip, parking_id=id_parking, ship_id=id_ship)
+        record_m_to_m.delete()
+        return Response(status=status.HTTP_200_OK)
 
-    def put(self, request, id_parking):
+    def put(self, request, id_parking, id_ship):
         # if not request.user.is_staff:
         #     return Response(status=status.HTTP_403_FORBIDDEN)
-        if 'id_ship' in request.data and 'captain' in request.data:
-            record_m_to_m = get_object_or_404(ParkingShip, parking_id=id_parking, ship_id=request.data['id_ship'])
+        if 'captain' in request.data:
+            record_m_to_m = get_object_or_404(ParkingShip, parking_id=id_parking, ship_id=id_ship)
             record_m_to_m.captain = request.data['captain']
             record_m_to_m.save()
             return Response(status=status.HTTP_200_OK)
         return Response(status=status.HTTP_400_BAD_REQUEST)
-
