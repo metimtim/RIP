@@ -174,7 +174,7 @@ class ListParking(APIView):
                                               status=request.data['status']).exclude(
                 formed_at=None)
         else:
-            parkings = Parking.objects.all()
+            parkings = Parking.objects.all().exclude(formed_at=None)
 
         parkings_serializer = ParkingSerializer(parkings, many=True)
 
@@ -251,7 +251,7 @@ class ModerateParking(APIView):
         if serializer.is_valid():
             if serializer.validated_data['accept'] == True and parking.status:
                 parking.status = 'completed'
-                parking.moderator = request.user
+                parking.moderator = request.user.username
                 count_ships_in_draft = ParkingShip.objects.filter(parking_id=id_parking).values_list('ship_id',
                                                                                                      flat=True).count()
                 parking.spendings_of_crew = count_ships_in_draft * randint(10000, 20000)
