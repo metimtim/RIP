@@ -1,8 +1,10 @@
+import uuid
 from datetime import datetime
 from random import randint
 
 from django.contrib.auth import logout, login
 from django.db.models import F
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
@@ -11,8 +13,12 @@ from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
+from django.conf import settings
+import redis
 from .serializers import *
+session_storage = redis.StrictRedis(host=settings.REDIS_HOST, port=settings.REDIS_PORT)
+
+
 
 class CsrfExemptSessionAuthentication(SessionAuthentication):
     def enforce_csrf(self, request):
@@ -26,7 +32,7 @@ class ShipList(APIView):
     @swagger_auto_schema(
         operation_description="Получение списка кораблей. Можно отфильтровать по его классу.",
         manual_parameters=[
-            openapi.Parameter('ship_name', openapi.IN_QUERY, description="Название класса корабля",
+            openapi.Parameter('class_name', openapi.IN_QUERY, description="Название класса корабля",
                               type=openapi.TYPE_STRING, default=""),
         ],
         responses={200: ShipListSerializer(many=True)}
@@ -40,14 +46,19 @@ class ShipList(APIView):
 
         serializer = self.serializer_class(ships, many=True)
         resp = serializer.data
-        draft_request = Parking.objects.filter(user=request.user, status='draft').first()
-
-        if draft_request:
-            draft_request_id = Parking.objects.filter(user=request.user, status='draft').first().id_parking
-            count_ships_in_draft = ParkingShip.objects.filter(parking_id=draft_request).values_list('ship_id',
-                                                                                                    flat=True).count()
-            resp.append({'parking_id': draft_request_id})
-            resp.append({'count': count_ships_in_draft})
+        if request.user.is_authenticated:
+            if Parking.objects.filter(status='draft', user = request.user).exists():
+                draft_request = Parking.objects.filter(user=request.user, status='draft').first()
+                draft_request_id = Parking.objects.filter(status='draft', user=request.user).first().id_parking
+                count_ships_in_draft = ParkingShip.objects.filter(parking_id=draft_request).values_list('ship_id',
+                                                                                                        flat=True).count()
+                if draft_request:
+                    resp.append({'draft_request_id': draft_request_id})
+                    resp.append({'count': count_ships_in_draft})
+                    return Response(resp, status=status.HTTP_200_OK)
+        else:
+            resp.append({'draft_request_id': None})
+            resp.append({'count': 0})
 
         return Response(resp, status=status.HTTP_200_OK)
 
@@ -117,6 +128,7 @@ class ShipDetail(APIView):
 class AddShipView(APIView):
     authentication_classes = [CsrfExemptSessionAuthentication]
     permission_classes = [IsAuthenticated]
+
     # добавление услуги в заявку
     @swagger_auto_schema(
         operation_description="Добавление корабля в заявку-черновик пользователя. Создается новая заявка, если не существует заявки-черновика",
@@ -158,6 +170,7 @@ class AddShipView(APIView):
 class ImageView(APIView):
     authentication_classes = [CsrfExemptSessionAuthentication]
     permission_classes = [IsAuthenticated]
+
     @swagger_auto_schema(
         operation_description="Upload an image for a ship.",
         request_body=AddImageSerializer,
@@ -225,9 +238,9 @@ class UserLoginView(APIView):
             password = request.data['password']
             user = authenticate(username=username, password=password)
             if user is not None:
-                login(request, user)  # Сохраняем информацию о пользователе в сессии
-                # random_key = uuid.uuid4()
-                # session_storage.set(random_key, username)
+                login(request, user)
+                random_key = str(uuid.uuid4())
+                session_storage.set(random_key, username)
                 return Response({'message': 'Login successful'}, status=status.HTTP_200_OK)
             else:
                 return Response({'error': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
@@ -250,6 +263,7 @@ class UserLogoutView(APIView):
 class ListParking(APIView):
     authentication_classes = [CsrfExemptSessionAuthentication]
     permission_classes = [IsAuthenticated]
+
     @swagger_auto_schema(
         operation_description="Get a list of requests. Optionally filter by date and status.",
         manual_parameters=[
@@ -265,7 +279,7 @@ class ListParking(APIView):
             if request.user.is_staff:
                 if 'date' in request.data and 'status' in request.data:
                     parkings = Parking.objects.filter(formed_at__gte=request.data['date'],
-                                                    status=request.data['status']).exclude(
+                                                      status=request.data['status']).exclude(
                         formed_at=None)
                 else:
                     parkings = Parking.objects.all().exclude(
@@ -285,9 +299,11 @@ class ListParking(APIView):
         else:
             return Response({'message': 'Вы не вошли в аккаунт'}, status=status.HTTP_403_FORBIDDEN)
 
+
 class GetParking(APIView):
     authentication_classes = [CsrfExemptSessionAuthentication]
     permission_classes = [IsAuthenticated]
+
     @swagger_auto_schema(
         operation_description="Get details of a request by ID, including associated threats.",
         responses={200: ParkingSerializer()}
@@ -321,7 +337,6 @@ class GetParking(APIView):
         request_body=PutParkingSerializer,
         responses={200: "Request updated successfully", 400: "Bad request"}
     )
-
     def put(self, request, id_parking):
         if request.user.is_authenticated:
             serializer = PutParkingSerializer(data=request.data, partial=True)
@@ -340,6 +355,7 @@ class GetParking(APIView):
 class FormParking(APIView):
     authentication_classes = [CsrfExemptSessionAuthentication]
     permission_classes = [IsAuthenticated]
+
     @swagger_auto_schema(
         operation_description="Mark a request as formed. Only available for requests with a 'draft' status.",
         responses={200: "Request successfully formed", 400: "Bad request"}
@@ -366,6 +382,7 @@ class FormParking(APIView):
 class ModerateParking(APIView):
     authentication_classes = [CsrfExemptSessionAuthentication]
     permission_classes = [IsAuthenticated]
+
     @swagger_auto_schema(
         operation_description="Approve or decline a request (for moderators).",
         request_body=AcceptParkingSerializer,
@@ -416,6 +433,7 @@ class ModerateParking(APIView):
 class EditShipParking(APIView):
     authentication_classes = [CsrfExemptSessionAuthentication]
     permission_classes = [IsAuthenticated]
+
     @swagger_auto_schema(
         operation_description="Remove a threat from a request.",
         # request_body=openapi.Schema(
@@ -450,5 +468,4 @@ class EditShipParking(APIView):
             record_m_to_m.save()
             return Response(status=status.HTTP_200_OK)
         return Response(status=status.HTTP_400_BAD_REQUEST)
-
 
