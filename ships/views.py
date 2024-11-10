@@ -40,9 +40,9 @@ class ShipList(APIView):
     # получить список кораблей
     def get(self, request):
         if 'class_name' in request.GET:
-            ships = self.model_class.objects.filter(class_name__icontains=request.GET['class_name'])
+            ships = self.model_class.objects.filter(class_name__icontains=request.GET['class_name'], status = 'active')
         else:
-            ships = self.model_class.objects.all()
+            ships = self.model_class.objects.filter(status = 'active')
 
         serializer = self.serializer_class(ships, many=True)
         resp = serializer.data
