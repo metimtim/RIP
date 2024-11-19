@@ -6,6 +6,7 @@ from django.contrib.auth import logout, login
 from django.db.models import F
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from django_redis import get_redis_connection
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
@@ -224,7 +225,6 @@ class UserUpdateView(APIView):
 
 # Аутентификация пользователя
 class UserLoginView(APIView):
-    authentication_classes = [CsrfExemptSessionAuthentication]
 
     @swagger_auto_schema(
         operation_description="Аутентификация пользователя с логином и паролем. Возвращает файл cookie сеанса в случае успеха.",
@@ -237,13 +237,28 @@ class UserLoginView(APIView):
             username = request.data['username']
             password = request.data['password']
             user = authenticate(username=username, password=password)
+
             if user is not None:
+                # Генерируем уникальный ключ для сессии
+                session_key = str(uuid.uuid4())
+
+                # Подключаемся к Redis
+                redis_conn = get_redis_connection("default")
+
+                # Сохраняем данные пользователя в Redis
+                redis_conn.hset(session_key, "username", username)
+
+                # Логиним пользователя
                 login(request, user)
-                random_key = str(uuid.uuid4())
-                session_storage.set(random_key, username)
-                return Response({'message': 'Login successful'}, status=status.HTTP_200_OK)
+
+                # Устанавливаем сессионный ключ в куки
+                response = Response({'message': 'Login successful'}, status=status.HTTP_200_OK)
+                response.set_cookie('session_key', session_key)
+
+                return response
             else:
                 return Response({'error': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 

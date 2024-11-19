@@ -35,7 +35,7 @@ class PutParkingSerializer(serializers.ModelSerializer):
 class ShipDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ship
-        fields = ["id_ship", "ship_name", "class_name", "status", "description"]
+        fields = ["id_ship", "ship_name", "class_name", "status", "description", "img_url"]
 
 
 class ShipListSerializer(serializers.ModelSerializer):
